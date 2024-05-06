@@ -35,7 +35,7 @@ def fetch_links(url):
 
 def get_URL(flag):
     #flag = 1：不在终端打印获取的url，而是保存为txt文件；
-    #flag = 2：在终端打印获取的url，不保存为txt文件。
+    #flag = 2：在终端打印获取的url，不保存为txt文件.
     links_all = []
     # Load URLs from an Excel file
     excel_file = 'E:\\20240506clawingPDF\\url.xlsx'  # Replace with the path to your Excel file
