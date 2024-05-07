@@ -33,34 +33,45 @@ def fetch_links(url):
 
     return links
 
-def get_URL(flag):
-    #flag = 1：不在终端打印获取的url，而是保存为txt文件；
-    #flag = 2：在终端打印获取的url，不保存为txt文件.
-    links_all = []
+def get_URL(flag,excel_file,sheet_name,sheet_num,output_file):
+    #flag = 1：first Level URL；
+    #flag = 2：Second Level URL.
     # Load URLs from an Excel file
-    excel_file = 'E:\\20240506clawingPDF\\url.xlsx'  # Replace with the path to your Excel file
-    sheet_name = 'total'  # Sheet name or index
+    excel_file = excel_file
+    sheet_name = sheet_name 
     df = pd.read_excel(excel_file, sheet_name=sheet_name)
-    urls = df.iloc[:, 1].dropna().unique()  # Assuming URLs are in the first column
-    for url in urls:
-        for i in range(1,21):
-            modified_url = url + "?page=" + str(i)
-            print(f"Fetching links from: {modified_url}")
-            links = fetch_links(modified_url)
-            if links:
-                print("Found links:")
-                links_all.extend(links)
-                if flag == 2:
-                    for link in links:
-                        print(link)
-            else:
-                print("No links found or failed to fetch links.")
+    urls = df.iloc[:, sheet_num].dropna().unique()  # Assuming URLs are in the first column
+    links_all = []
     if flag == 1:
+        for url in urls:
+            links = fetch_links(url)
+            links_all.extend(links)
+            if links:
+                print("Found links in First Level URL:{}.".format(url))
+            else:
+                print("No links found or failed to fetch links in First Level URL.")
+    elif flag == 2:
+        
+        for url in urls:
+            #考虑到具体标准下可能会有很多的分页
+            for i in range(1,21):
+                modified_url = url + "?page=" + str(i)
+                print(f"Fetching links from: {modified_url}")
+                links = fetch_links(modified_url)
+                if links:
+                    print("Found links in Second Level URL:{}.".format(modified_url).")
+                    links_all.extend(links)
+                else:
+                    print("No links found or failed to fetch links in Second Level URL.")
     # Save the collected links to a text file
-        output_file = 'E:\\20240506clawingPDF\\collected_links.txt'  # Specify the path to save the text file
-        with open(output_file, 'w') as file:
-            for link in links_all:
-                file.write(f"{link}\n")  # Write each link on a new line
+    output_file = output_file  # Specify the path to save the text file
+    with open(output_file, 'w') as file:
+        for link in links_all:
+            file.write(f"{link}\n")  # Write each link on a new line
 
 if __name__ == "__main__":
-    get_URL(flag=1)
+    get_URL(flag=1,
+                excel_file = 'firstLevel_URL.xlsx',
+                    sheet_name = 'total',
+                        sheet_num = 1,
+                            output_file = 'collected_links.txt')
