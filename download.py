@@ -24,10 +24,6 @@ def get_pdf_links(url,base_url):
             pdf_links.append(href)
     return pdf_links
 
-def sanitize_filename(name):
-    """Sanitize the filename by removing or replacing invalid characters."""
-    return re.sub(r'[\\/*?:"<>|]', "", name)
-
 def download_pdfs(links, folder):
     """Download PDFs from a list of links to the specified folder."""
     if not os.path.exists(folder):
@@ -41,14 +37,13 @@ def download_pdfs(links, folder):
             continue
 
         pdf_name = link.split('/')[-1].split('=')[-1]
-        sanitized_name = sanitize_filename(pdf_name)
-        pdf_path = os.path.join(folder, sanitized_name)
+        pdf_path = os.path.join(folder, pdf_name)
         try:
             with open(pdf_path, 'wb') as f:
                 f.write(response.content)
-            print(f"Downloaded {sanitized_name} to {folder}")
+            print(f"Downloaded {pdf_name} to {folder}")
         except IOError as e:
-            print(f"Failed to save {sanitized_name}: {e}")
+            print(f"Failed to save {pdf_name}: {e}")
 
 def download(excel_file, base_folder,base_url):
     df = pd.read_excel(excel_file)

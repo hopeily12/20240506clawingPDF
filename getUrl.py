@@ -9,7 +9,7 @@ def write_modify_xlsx(path,list):
     #删除重复的行
     df = df.drop_duplicates(keep=False)
     #删除有特定字符的行
-    df = df[~df['URL'].str.contains("page")]
+    # df = df[~df['URL'].str.contains("page")]
 
     # 保存到本地excel
     df.to_excel(path, index=False)
@@ -63,7 +63,7 @@ def get_URL(flag,excel_file,output_file):
     elif flag == 2:   
         for url in urls:
             #考虑到具体标准下可能会有很多的分页
-            for i in range(1,21):
+            for i in range(1,25):
                 modified_url = url + "?page=" + str(i)
                 print(f"Fetching links from: {modified_url}")
                 links = fetch_links(modified_url)
