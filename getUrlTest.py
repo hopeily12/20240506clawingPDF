@@ -46,7 +46,7 @@ def fetch_all_links(url, visited=None):
         return visited
 
     visited.add(url)
-    print(f"Fetching links under {url}")
+    print(f"Fetching links under {url.encode('utf-8').decode('utf-8', 'ignore')}")
     sub_links = fetch_links(url)
 
     for link in sub_links:
