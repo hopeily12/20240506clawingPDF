@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 import re
+import pandas as pd
 
 def get_pdf_links(url):
     """Fetch all PDF links from the given URL."""
@@ -31,7 +32,6 @@ def download_pdfs(links, download_folder="downloads"):
     """Download PDFs from a list of links."""
     if not os.path.exists(download_folder):
         os.makedirs(download_folder)
-
     for link in links:
         try:
             response = requests.get(link)
@@ -50,24 +50,14 @@ def download_pdfs(links, download_folder="downloads"):
         except IOError as e:
             print(f"Failed to save {sanitized_name}: {e}")
 
-def main():
-    urls = ['http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-115_NOTICE-1_16836/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-116_12692/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-117_22115/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-118_16851/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-118_NOTICE-1_16853/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-129_4141/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-129_NOTICE-1_25249/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-130B_NOTICE-1_18229/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-131A_21782/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-131A_NOTICE-1_21783/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-131A_NOTICE-2_21784/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-132A_3117/',
-            'http://everyspec.com/MIL-HDBK/MIL-HDBK-0099-0199/MIL-HDBK-132A_NOTICE-1_3116/']
+def download(excel_file,download_folder):
+    excel_file = excel_file
+    df = pd.read_excel(excel_file)
+    urls = df.iloc[:, 0].dropna().unique()  # Assuming URLs are in the second column
+    download_folder = download_folder  # Define your own path here
     for url in urls:
-        download_folder = "D:\\test"  # Define your own path here
         pdf_links = get_pdf_links(url)
         download_pdfs(pdf_links, download_folder)
 
 if __name__ == "__main__":
-    main()
+    download(excel_file="thirdLevel_URL.xlsx",download_folder = "download")
