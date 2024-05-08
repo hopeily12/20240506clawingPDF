@@ -47,6 +47,8 @@ def download_pdfs(links, folder):
 
 def download(excel_file, base_folder,base_url):
     df = pd.read_excel(excel_file)
+    df = df.drop_duplicates(keep=False) #删除重复的行
+    df = df[~df['URL'].str.contains("page")] #删除包含特定字符的行
     urls = df.iloc[:, 0].dropna().unique()  # Assuming URLs are in the first column
 
     for url in urls:
@@ -61,6 +63,6 @@ def download(excel_file, base_folder,base_url):
         download_pdfs(pdf_links, subfolder_path)
 
 if __name__ == "__main__":
-    download(excel_file="secondLevel_URL_Test.xlsx", 
+    download(excel_file="MIL-PRF.xlsx", 
                 base_folder="download",
                     base_url = 'http://everyspec.com')
