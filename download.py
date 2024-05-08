@@ -61,6 +61,6 @@ def download(excel_file, base_folder,base_url):
         download_pdfs(pdf_links, subfolder_path)
 
 if __name__ == "__main__":
-    download(excel_file="thirdLevel_URL.xlsx", 
+    download(excel_file="secondLevel_URL_Test.xlsx", 
                 base_folder="download",
                     base_url = 'http://everyspec.com')

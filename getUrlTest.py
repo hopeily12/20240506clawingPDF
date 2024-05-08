@@ -3,14 +3,23 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 import pandas as pd
 import time
+import openpyxl
 
-def write_modify_xlsx(path, links):
-    """Writes the URLs to an Excel file after removing duplicates."""
-    df = pd.DataFrame(links, columns=['URL'])
-    df = df.drop_duplicates(keep=False)
-    #删除有特定字符的行
-    df = df[~df['URL'].str.contains("page")]
-    df.to_excel(path, index=False)
+def write_append_xlsx(path, links):
+    """Append new URLs to an Excel file, ensuring no duplicates."""
+    # Load or create a new Excel file
+    try:
+        df_existing = pd.read_excel(path)
+        existing_links = set(df_existing['URL'].dropna().unique())
+    except FileNotFoundError:
+        existing_links = set()
+
+    # Remove duplicates
+    new_links = set(links) - existing_links
+    if new_links:
+        df_new = pd.DataFrame(new_links, columns=['URL'])
+        with pd.ExcelWriter(path, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
+            df_new.to_excel(writer, index=False, header=False, startrow=writer.sheets['Sheet1'].max_row)
 
 def fetch_links(url):
     """Fetches direct hyperlinks from the provided URL."""
@@ -37,22 +46,27 @@ def fetch_links(url):
 
     return links
 
-def fetch_all_links(url, visited=None):
-    """Recursively fetches all links under the given URL."""
+def fetch_all_links(url, path, visited=None, max_depth=3, current_depth=0):
+    """Recursively fetches all links under the given URL and appends them to the Excel file."""
     if visited is None:
         visited = set()
 
-    if url in visited:
+    if url in visited or current_depth >= max_depth:
         return visited
 
     visited.add(url)
-    print(f"Fetching links under {url.encode('utf-8').decode('utf-8', 'ignore')}")
+    try:
+        print(f"Fetching links under {repr(url)}")
+    except UnicodeEncodeError:
+        print(f"Fetching links under [Unprintable URL]")
+
     sub_links = fetch_links(url)
+    write_append_xlsx(path, sub_links)
 
     for link in sub_links:
         if link not in visited:
             time.sleep(1)  # To avoid overloading the server
-            fetch_all_links(link, visited)
+            fetch_all_links(link, path, visited, max_depth=max_depth, current_depth=current_depth + 1)
 
     return visited
 
@@ -60,33 +74,15 @@ def get_all_links(excel_file, output_file):
     """Loads URLs from an Excel file and fetches all links for each URL."""
     df = pd.read_excel(excel_file)
     urls = df.iloc[:, 0].dropna().unique()
-    all_links = set()
+
+    # Create or clear the output Excel file
+    with pd.ExcelWriter(output_file) as writer:
+        df_empty = pd.DataFrame(columns=['URL'])
+        df_empty.to_excel(writer, index=False)
 
     for url in urls:
-        links = fetch_all_links(url)
-        all_links.update(links)
+        links = fetch_all_links(url, output_file)
         print(f"Found {len(links)} links under {url}")
 
-    write_modify_xlsx(output_file, list(all_links))
-
 if __name__ == "__main__":
-    get_all_links(excel_file='firstLevel_URL.xlsx', output_file='secondLevel_URL.xlsx')
-
-
-etching links under http://everyspec.com/ARMY/ARMY-General/tb9-2300-426-20_6201/
-Traceback (most recent call last):
-  File "e:\20240506clawingPDF\getUrlTest.py", line 73, in <module>
-    get_all_links(excel_file='firstLevel_URL.xlsx', output_file='secondLevel_URL.xlsx')
-  File "e:\20240506clawingPDF\getUrlTest.py", line 66, in get_all_links
-    links = fetch_all_links(url)
-            ^^^^^^^^^^^^^^^^^^^^
-  File "e:\20240506clawingPDF\getUrlTest.py", line 55, in fetch_all_links
-    fetch_all_links(link, visited)
-  File "e:\20240506clawingPDF\getUrlTest.py", line 55, in fetch_all_links
-    fetch_all_links(link, visited)
-  File "e:\20240506clawingPDF\getUrlTest.py", line 55, in fetch_all_links
-    fetch_all_links(link, visited)
-  [Previous line repeated 2 more times]
-  File "e:\20240506clawingPDF\getUrlTest.py", line 49, in fetch_all_links
-    print(f"Fetching links under {url.encode('utf-8').decode('utf-8', 'ignore')}")
-UnicodeEncodeError: 'gbk' codec can't encode character '\ufffd' in position 67: illegal multibyte sequence
+    get_all_links(excel_file='firstLevel_URL_Test.xlsx', output_file='secondLevel_URL_Test.xlsx')
