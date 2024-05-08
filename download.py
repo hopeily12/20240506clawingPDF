@@ -45,16 +45,10 @@ def download_pdfs(links, folder):
         except IOError as e:
             print(f"Failed to save {pdf_name}: {e}")
 
-<<<<<<< HEAD
 def download(excel_file, base_folder,base_url):
     df = pd.read_excel(excel_file)
-    df = df.drop_duplicates(keep=False) #删除重复的行
-    df = df[~df['URL'].str.contains("page")] #删除包含特定字符的行
     urls = df.iloc[:, 0].dropna().unique()  # Assuming URLs are in the first column
 
-=======
-def download(urls,base_folder="download",base_url = 'http://everyspec.com'):
->>>>>>> 951b7ec (合并后)
     for url in urls:
         # Extract the last directory name from the URL path for the subfolder
         base_url = base_url
@@ -65,10 +59,6 @@ def download(urls,base_folder="download",base_url = 'http://everyspec.com'):
         download_pdfs(pdf_links, subfolder_path)
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    download(excel_file="MIL-PRF.xlsx", 
+    download(excel_file="secondLevel_URL_Test.xlsx", 
                 base_folder="download",
                     base_url = 'http://everyspec.com')
-=======
-    download(urls)
->>>>>>> 951b7ec (合并后)
