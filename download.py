@@ -63,6 +63,6 @@ def download(excel_file, base_folder,base_url):
         download_pdfs(pdf_links, subfolder_path)
 
 if __name__ == "__main__":
-    download(excel_file="MIL-PRF.xlsx", 
+    download(excel_file="MIL-STD.xlsx", 
                 base_folder="download",
                     base_url = 'http://everyspec.com')

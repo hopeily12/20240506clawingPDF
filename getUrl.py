@@ -46,7 +46,7 @@ def fetch_links(url):
 
     return links
 
-def fetch_all_links(url, path, visited=None, max_depth=3, current_depth=0):
+def fetch_all_links(url, path, visited=None, max_depth=25, current_depth=0):
     """Recursively fetches all links under the given URL and appends them to the Excel file."""
     if visited is None:
         visited = set()
