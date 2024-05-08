@@ -45,22 +45,15 @@ def download_pdfs(links, folder):
         except IOError as e:
             print(f"Failed to save {pdf_name}: {e}")
 
-def download(excel_file, base_folder,base_url):
-    df = pd.read_excel(excel_file)
-    urls = df.iloc[:, 0].dropna().unique()  # Assuming URLs are in the first column
-
+def download(urls,base_folder="download",base_url = 'http://everyspec.com'):
     for url in urls:
         # Extract the last directory name from the URL path for the subfolder
         base_url = base_url
         subfolder_name = url.replace(base_url, '').lstrip('/').split('/')[0]
-
         subfolder_path = os.path.join(base_folder, subfolder_name)
-        
         # Fetch and download PDF links
         pdf_links = get_pdf_links(url,base_url)
         download_pdfs(pdf_links, subfolder_path)
 
 if __name__ == "__main__":
-    download(excel_file="secondLevel_URL_Test.xlsx", 
-                base_folder="download",
-                    base_url = 'http://everyspec.com')
+    download(urls)
