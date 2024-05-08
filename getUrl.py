@@ -2,83 +2,87 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 import pandas as pd
+import time
+import openpyxl
 
-def write_modify_xlsx(path,list):
-    # list转dataframe
-    df = pd.DataFrame(list, columns=['URL'])
-    #删除重复的行
-    df = df.drop_duplicates(keep=False)
-    #删除有特定字符的行
-    # df = df[~df['URL'].str.contains("page")]
+def write_append_xlsx(path, links):
+    """Append new URLs to an Excel file, ensuring no duplicates."""
+    # Load or create a new Excel file
+    try:
+        df_existing = pd.read_excel(path)
+        existing_links = set(df_existing['URL'].dropna().unique())
+    except FileNotFoundError:
+        existing_links = set()
 
-    # 保存到本地excel
-    df.to_excel(path, index=False)
+    # Remove duplicates
+    new_links = set(links) - existing_links
+    if new_links:
+        df_new = pd.DataFrame(new_links, columns=['URL'])
+        with pd.ExcelWriter(path, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
+            df_new.to_excel(writer, index=False, header=False, startrow=writer.sheets['Sheet1'].max_row)
 
 def fetch_links(url):
-    """Fetches hyperlinks that are subdirectories of the given URL."""
+    """Fetches direct hyperlinks from the provided URL."""
     try:
-        # Send HTTP request to the URL
         response = requests.get(url)
-        response.raise_for_status()  # Raises an HTTPError for bad responses
+        response.raise_for_status()
     except requests.RequestException as e:
-        print(f"Error accessing the website: {e}")
+        print(f"Error accessing the website {url}: {e}")
         return []
 
-    # Parse the HTML content of the page
     soup = BeautifulSoup(response.text, 'html.parser')
-
     base_url = url
     domain = urlparse(base_url).netloc
     path = urlparse(base_url).path.rstrip('/')
-    links = []
-    
-    # Find all 'a' tags and extract the 'href' attribute, ensuring they are subdirectories of the base URL
+    links = set()
+
     for a in soup.find_all('a', href=True):
         href = a.get('href')
-        joined_url = urljoin(base_url, href)  # Resolve relative URLs
+        joined_url = urljoin(base_url, href)
         parsed_url = urlparse(joined_url)
 
-        # Check if the joined URL is within the same domain and subdirectory level or deeper
         if parsed_url.netloc == domain and parsed_url.path.startswith(path):
-            links.append(joined_url)
+            links.add(joined_url)
 
     return links
 
-def get_URL(flag,excel_file,output_file):
-    #flag = 1：first Level URL；
-    #flag = 2：Second Level URL.
-    # Load URLs from an Excel file
-    excel_file = excel_file
+def fetch_all_links(url, path, visited=None, max_depth=3, current_depth=0):
+    """Recursively fetches all links under the given URL and appends them to the Excel file."""
+    if visited is None:
+        visited = set()
+
+    if url in visited or current_depth >= max_depth:
+        return visited
+
+    visited.add(url)
+    try:
+        print(f"Fetching links under {repr(url)}")
+    except UnicodeEncodeError:
+        print(f"Fetching links under [Unprintable URL]")
+
+    sub_links = fetch_links(url)
+    write_append_xlsx(path, sub_links)
+
+    for link in sub_links:
+        if link not in visited:
+            time.sleep(1)  # To avoid overloading the server
+            fetch_all_links(link, path, visited, max_depth=max_depth, current_depth=current_depth + 1)
+
+    return visited
+
+def get_all_links(excel_file, output_file):
+    """Loads URLs from an Excel file and fetches all links for each URL."""
     df = pd.read_excel(excel_file)
-    urls = df.iloc[:, 0].dropna().unique()  # Assuming URLs are in the second column
-    links_all = []
-    if flag == 1:
-        for url in urls:
-            links = fetch_links(url)
-            links_all.extend(links)
-            if links:
-                print("Found links in First Level URL:{}.".format(url))
-            else:
-                print("No links found or failed to fetch links in First Level URL.")
-    elif flag == 2:   
-        for url in urls:
-            #考虑到具体标准下可能会有很多的分页
-            for i in range(1,25):
-                modified_url = url + "?page=" + str(i)
-                print(f"Fetching links from: {modified_url}")
-                links = fetch_links(modified_url)
-                if links:
-                    print("Found links in Second Level URL:{}.".format(modified_url))
-                    links_all.extend(links)
-                else:
-                    print("No links found or failed to fetch links in Second Level URL.")
-    # Save the collected links to a text file
-    write_modify_xlsx(output_file,links_all)
+    urls = df.iloc[:, 0].dropna().unique()
+
+    # Create or clear the output Excel file
+    with pd.ExcelWriter(output_file) as writer:
+        df_empty = pd.DataFrame(columns=['URL'])
+        df_empty.to_excel(writer, index=False)
+
+    for url in urls:
+        links = fetch_all_links(url, output_file)
+        print(f"Found {len(links)} links under {url}")
 
 if __name__ == "__main__":
-    get_URL(flag=1,
-                excel_file = 'firstLevel_URL.xlsx',
-                        output_file = 'secondLevel_URL.xlsx')
-    get_URL(flag=2,
-            excel_file = 'secondLevel_URL.xlsx',
-                    output_file = 'thirdLevel_URL.xlsx')
+    get_all_links(excel_file='firstLevel_URL_Test.xlsx', output_file='secondLevel_URL_Test.xlsx')
