@@ -164,7 +164,7 @@ def fetch_all_links(url, path, visited=None, max_depth=3, current_depth=0):
 
     return visited
 
-def get_all_links(excel_file, output_file):
+def get_and_download__all_links(excel_file, output_file):
     """Loads URLs from an Excel file and fetches all links for each URL."""
     df = pd.read_excel(excel_file)
     urls = df.iloc[:, 0].dropna().unique()
@@ -179,4 +179,4 @@ def get_all_links(excel_file, output_file):
         print(f"Found {len(links)} links under {url}")
 
 if __name__ == "__main__":
-    get_all_links(excel_file='firstLevel_URL_Test.xlsx', output_file='secondLevel_URL_Test.xlsx')
+    get_and_download__all_links(excel_file='firstLevel_URL_Test.xlsx', output_file='secondLevel_URL_Test.xlsx')
