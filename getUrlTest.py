@@ -71,3 +71,22 @@ def get_all_links(excel_file, output_file):
 
 if __name__ == "__main__":
     get_all_links(excel_file='firstLevel_URL.xlsx', output_file='secondLevel_URL.xlsx')
+
+
+etching links under http://everyspec.com/ARMY/ARMY-General/tb9-2300-426-20_6201/
+Traceback (most recent call last):
+  File "e:\20240506clawingPDF\getUrlTest.py", line 73, in <module>
+    get_all_links(excel_file='firstLevel_URL.xlsx', output_file='secondLevel_URL.xlsx')
+  File "e:\20240506clawingPDF\getUrlTest.py", line 66, in get_all_links
+    links = fetch_all_links(url)
+            ^^^^^^^^^^^^^^^^^^^^
+  File "e:\20240506clawingPDF\getUrlTest.py", line 55, in fetch_all_links
+    fetch_all_links(link, visited)
+  File "e:\20240506clawingPDF\getUrlTest.py", line 55, in fetch_all_links
+    fetch_all_links(link, visited)
+  File "e:\20240506clawingPDF\getUrlTest.py", line 55, in fetch_all_links
+    fetch_all_links(link, visited)
+  [Previous line repeated 2 more times]
+  File "e:\20240506clawingPDF\getUrlTest.py", line 49, in fetch_all_links
+    print(f"Fetching links under {url.encode('utf-8').decode('utf-8', 'ignore')}")
+UnicodeEncodeError: 'gbk' codec can't encode character '\ufffd' in position 67: illegal multibyte sequence
